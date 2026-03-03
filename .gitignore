@@ -1,0 +1,27 @@
+# Virtual environments
+.venv/
+venv/
+venv_win/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Temp files
+tmp_uploads/
+tmp_outputs/
+
+# Data files (don't push sensitive data)
+alumni_data.ods
+alumni_data.xlsx
+enriched_alumni.xlsx
+enriched_alumni_new.xlsx
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: alumni-data-enricher
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SERPAPI_KEY
+        sync: false
+      - key: PROXYCURL_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.4
