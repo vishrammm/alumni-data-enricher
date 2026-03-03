@@ -27,7 +27,4 @@ COL_DESIGNATION = "Designation"
 # New Columns to Add
 COL_LINKEDIN_URL = "LinkedIn URL"
 COL_LINKEDIN_STATUS = "LinkedIn Status"
-COL_DATA_SOURCE = "Data Source"
-COL_ENRICHED_ROLE = "Enriched Role"
-COL_ENRICHED_COMPANY = "Enriched Company"
-COL_ENRICHED_LOCATION = "Enriched Location"
+COL_WEB_SEARCH_URL = "Web Search URL"

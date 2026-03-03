@@ -10,14 +10,12 @@ app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'ods', 'csv'}
 
-# New columns to add to the output
-NEW_COLUMNS = [
-    COL_LINKEDIN_URL,
+# Output columns
+OUTPUT_COLUMNS = [
+    COL_NAME,
     COL_LINKEDIN_STATUS,
-    COL_DATA_SOURCE,
-    COL_ENRICHED_ROLE,
-    COL_ENRICHED_COMPANY,
-    COL_ENRICHED_LOCATION
+    COL_LINKEDIN_URL,
+    COL_WEB_SEARCH_URL
 ]
 
 
@@ -67,19 +65,19 @@ def upload_file():
         for idx, row in df.iterrows():
             try:
                 enriched = process_alumni_row(row)
-                record = row.to_dict()
-                record.update(enriched)
-                results.append(record)
+                results.append(enriched)
             except Exception as e:
                 print(f"Error processing row {idx}: {e}")
-                record = row.to_dict()
-                for col in NEW_COLUMNS:
-                    record[col] = ""
-                record[COL_LINKEDIN_STATUS] = f"Error: {str(e)[:100]}"
-                results.append(record)
+                name = str(row[COL_NAME]).strip() if pd.notna(row[COL_NAME]) else ""
+                results.append({
+                    COL_NAME: name,
+                    COL_LINKEDIN_STATUS: f"Error: {str(e)[:100]}",
+                    COL_LINKEDIN_URL: "",
+                    COL_WEB_SEARCH_URL: ""
+                })
 
-        # Write the enriched Excel to an in-memory buffer
-        result_df = pd.DataFrame(results)
+        # Write only the 4 output columns to Excel
+        result_df = pd.DataFrame(results)[OUTPUT_COLUMNS]
         output_buffer = io.BytesIO()
         result_df.to_excel(output_buffer, index=False, engine='openpyxl')
         output_buffer.seek(0)
