@@ -1,18 +1,12 @@
 import os
+import io
 import uuid
-import shutil
 import pandas as pd
-from flask import Flask, request, render_template, send_file, jsonify, url_for
+from flask import Flask, request, render_template, send_file, jsonify
 from config import *
 from processor import process_alumni_row
 
 app = Flask(__name__)
-
-# Configure upload/output directories
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp_uploads')
-OUTPUT_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tmp_outputs')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'xlsx', 'xls', 'ods', 'csv'}
 
@@ -48,20 +42,14 @@ def upload_file():
     if not allowed_file(file.filename):
         return jsonify({'error': 'Invalid file type. Please upload .xlsx, .xls, .ods, or .csv'}), 400
 
-    # Generate unique ID for this job
-    job_id = str(uuid.uuid4())[:8]
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    input_path = os.path.join(UPLOAD_FOLDER, f'{job_id}_input.{ext}')
-    output_path = os.path.join(OUTPUT_FOLDER, f'{job_id}_enriched.xlsx')
-
-    file.save(input_path)
-
     try:
-        # Read the uploaded file
+        ext = file.filename.rsplit('.', 1)[1].lower()
+
+        # Read the uploaded file directly from memory
         if ext == 'csv':
-            df = pd.read_csv(input_path)
+            df = pd.read_csv(file)
         else:
-            df = pd.read_excel(input_path)
+            df = pd.read_excel(file)
 
         total = len(df)
         if total == 0:
@@ -90,36 +78,22 @@ def upload_file():
                 record[COL_LINKEDIN_STATUS] = f"Error: {str(e)[:100]}"
                 results.append(record)
 
-        # Save to output Excel
+        # Write the enriched Excel to an in-memory buffer
         result_df = pd.DataFrame(results)
-        result_df.to_excel(output_path, index=False)
+        output_buffer = io.BytesIO()
+        result_df.to_excel(output_buffer, index=False, engine='openpyxl')
+        output_buffer.seek(0)
 
-        return jsonify({
-            'success': True,
-            'total_processed': len(results),
-            'download_url': url_for('download_file', job_id=job_id)
-        })
+        # Send the file directly in the response — no temp files needed
+        return send_file(
+            output_buffer,
+            as_attachment=True,
+            download_name='enriched_alumni.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
 
     except Exception as e:
         return jsonify({'error': f'Processing failed: {str(e)}'}), 500
-    finally:
-        # Clean up input file
-        if os.path.exists(input_path):
-            os.remove(input_path)
-
-
-@app.route('/download/<job_id>')
-def download_file(job_id):
-    output_path = os.path.join(OUTPUT_FOLDER, f'{job_id}_enriched.xlsx')
-    if not os.path.exists(output_path):
-        return jsonify({'error': 'File not found or expired'}), 404
-
-    return send_file(
-        output_path,
-        as_attachment=True,
-        download_name='enriched_alumni.xlsx',
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
 
 
 if __name__ == '__main__':
