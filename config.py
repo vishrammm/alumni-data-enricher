@@ -2,8 +2,8 @@
 import os
 
 # API Keys — set these as environment variables on Render dashboard
-SERPAPI_KEY = os.environ.get("SERPAPI_KEY", "")
-PROXYCURL_API_KEY = os.environ.get("PROXYCURL_API_KEY", "")
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY", "0b48b5556fe3ef99cb681e1704870155de17505a9da0bfd6a47582c3133c6877")
+PROXYCURL_API_KEY = os.environ.get("PROXYCURL_API_KEY", "98242de648d94ac793dd79ecbb8eaed7")
 
 # File Paths
 INPUT_EXCEL_FILE = "alumni_data.ods"
@@ -28,3 +28,7 @@ COL_DESIGNATION = "Designation"
 COL_LINKEDIN_URL = "LinkedIn URL"
 COL_LINKEDIN_STATUS = "LinkedIn Status"
 COL_WEB_SEARCH_URL = "Web Search URL"
+COL_DATA_SOURCE = "Data Source"
+COL_ENRICHED_ROLE = "Enriched Role"
+COL_ENRICHED_COMPANY = "Enriched Company"
+COL_ENRICHED_LOCATION = "Enriched Location"
